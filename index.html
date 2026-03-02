@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tele-Evolución: El Archivo de la Transmisión</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <audio id="sound-hover" src="assets/sounds/hover-tick.mp3"></audio>
+    <audio id="sound-grab" src="assets/sounds/card-grab.mp3"></audio>
+    <audio id="sound-drop" src="assets/sounds/card-drop.mp3"></audio>
+    <audio id="sound-success" src="assets/sounds/success-chime.mp3"></audio>
+    <audio id="sound-error" src="assets/sounds/error-buzzer.mp3"></audio>
+    <audio id="sound-transition" src="assets/sounds/tv-turn-off.mp3"></audio>
+    <audio id="sound-static" src="assets/sounds/tv-static.mp3"></audio>
+
+    <div class="crt-overlay"></div>
+
+    <section id="intro-screen" class="view-screen active">
+        <div class="modal-box">
+            <h1>📺 Tele-Evolución</h1>
+            <h2>El Archivo de la Transmisión</h2>
+            <div class="instructions">
+                <p><strong>Objetivo:</strong> Descubre la evolución tecnológica de la televisión y sus inventores a través de 5 épocas históricas.</p>
+                <p><strong>¿Cómo jugar?</strong> Antes de cada nivel leerás el Contexto Histórico. Usa esa información para deducir qué pistas son las correctas y arrástralas al centro. Si fallas, quedará registrado en tu reporte final.</p>
+            </div>
+            <div class="player-form">
+                <input type="text" id="player-name-input" placeholder="Ingresa tu Nombre y Apellido" autocomplete="off">
+                <button id="btn-start-game" class="btn-action">INICIAR INVESTIGACIÓN</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="game-screen" class="view-screen hidden">
+        
+        <div id="context-overlay" class="hidden">
+            <div class="modal-box context-box">
+                <h2>📖 Expediente Histórico</h2>
+                <h3 id="context-era-title">Época</h3>
+                <p id="context-text-content">Texto del contexto cargará aquí...</p>
+                <button id="btn-close-context" class="btn-action">ENTENDIDO, INICIAR BÚSQUEDA</button>
+            </div>
+        </div>
+
+        <div class="game-wrapper" id="game-wrapper">
+            <header class="game-header">
+                <h1>📺 Tele-Evolución</h1>
+                <p class="subtitle">Investigador: <span id="display-player-name"></span></p>
+                <div class="level-badge">NIVEL: <span id="current-level">1</span>/5</div>
+            </header>
+
+            <main class="game-board">
+                <section class="enigma-section">
+                    <div class="tv-frame">
+                        <div class="tv-header-controls">
+                            <h2 id="era-title">Cargando Archivos...</h2>
+                            <button id="btn-open-context" class="btn-small">📖 Leer Contexto</button>
+                        </div>
+                        
+                        <div class="drop-zones-container">
+                            <div class="drop-slot" data-slot="1"><span class="slot-label">Inventor</span></div>
+                            <div class="drop-slot" data-slot="2"><span class="slot-label">Tecnología Base</span></div>
+                            <div class="drop-slot" data-slot="3"><span class="slot-label">Hito Histórico</span></div>
+                        </div>
+
+                        <div id="resolution-story" class="hidden">
+                            <p id="story-text"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="evidence-section" id="evidence-board"></section>
+
+                <section class="controls-section">
+                    <button id="btn-verify" class="btn-action" disabled>COMPROBAR ENIGMA</button>
+                    <button id="btn-next" class="btn-action hidden">SIGUIENTE ÉPOCA ⏭️</button>
+                </section>
+
+                <footer class="game-footer">
+                    <p>Autor: <strong>Lucas Orlando Molina Parra</strong> | Juego interactivo para el Taller de Comunicación | Tema: La evolución de la televisión</p>
+                </footer>
+            </main>
+        </div>
+    </section>
+
+    <section id="results-screen" class="view-screen hidden">
+        <div class="modal-box diploma-box">
+            <h1>🎓 Archivo Completado</h1>
+            <img src="assets/img/diploma.png" alt="Medalla de Finalización" class="medal-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\'><circle cx=\\'50\\' cy=\\'50\\' r=\\'40\\' fill=\\'gold\\'/></svg>'">
+            <h2 id="final-player-name">Nombre del Jugador</h2>
+            <p>Has demostrado un excelente dominio sobre la evolución tecnológica de la televisión.</p>
+            <div class="stats-box">
+                <p>Niveles superados: <strong>5/5</strong></p>
+                <p>Intentos fallidos: <strong id="final-mistakes" class="error-text">0</strong></p>
+            </div>
+            <button onclick="location.reload()" class="btn-action">JUGAR DE NUEVO</button>
+        </div>
+    </section>
+
+    <script src="js/data.js"></script>
+    <script src="js/gameLogic.js"></script>
+</body>
+</html>
