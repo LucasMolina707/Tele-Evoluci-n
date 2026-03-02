@@ -96,7 +96,7 @@ function loadLevel(index) {
     currentLevelUI.innerText = currentLevelData.level;
     eraTitle.innerText = currentLevelData.era;
     
-    // Cargar datos en el Modal de Contexto y abrirlo automáticamente
+    // Cargar y abrir contexto
     contextEraTitle.innerText = currentLevelData.era;
     contextTextContent.innerText = currentLevelData.context;
     openContextModal();
@@ -115,28 +115,33 @@ function loadLevel(index) {
             <p>${clue.text}</p>
         `;
 
+        // Eventos Ratón (Escritorio)
         card.addEventListener('mouseenter', () => playSound(sfxHover));
         card.addEventListener('dragstart', handleDragStart);
         card.addEventListener('dragend', handleDragEnd);
+
+        // Eventos Táctiles (Celulares / Tablets)
+        card.addEventListener('touchstart', handleTouchStart, {passive: false});
+        card.addEventListener('touchmove', handleTouchMove, {passive: false});
+        card.addEventListener('touchend', handleTouchEnd);
 
         evidenceBoard.appendChild(card);
     });
 }
 
-// Lógica del Modal de Contexto (Bloquea el arrastre por CSS z-index)
-function openContextModal() {
-    contextOverlay.classList.remove('hidden');
-}
-function closeContextModal() {
-    contextOverlay.classList.add('hidden');
-}
-
+// Modal de Contexto
+function openContextModal() { contextOverlay.classList.remove('hidden'); }
+function closeContextModal() { contextOverlay.classList.add('hidden'); }
 btnOpenContext.addEventListener('click', openContextModal);
 btnCloseContext.addEventListener('click', closeContextModal);
 
-// 5. EVENTOS DE DRAG & DROP
+// =========================================
+// 5. EVENTOS DE DRAG & DROP (ESCRITORIO Y MÓVIL)
+// =========================================
 let draggedCard = null;
+let touchClone = null; // Para el efecto visual en móviles
 
+// --- Lógica Escritorio (Ratón) ---
 function handleDragStart(e) {
     draggedCard = this;
     setTimeout(() => this.style.opacity = '0.5', 0);
@@ -157,7 +162,7 @@ dropSlots.forEach(slot => {
         this.classList.remove('drag-over');
         if (draggedCard) {
             const existingCard = this.querySelector('.card');
-            if (existingCard) { evidenceBoard.appendChild(existingCard); }
+            if (existingCard && existingCard !== draggedCard) { evidenceBoard.appendChild(existingCard); }
             this.appendChild(draggedCard);
             playSound(sfxDrop);
         }
@@ -173,6 +178,74 @@ evidenceBoard.addEventListener('drop', function(e) {
     }
 });
 
+// --- Lógica Móvil (Táctil) ---
+function handleTouchStart(e) {
+    if (this.getAttribute('draggable') === 'false') return; // Si ya ganó, no mover
+    draggedCard = this;
+    this.style.opacity = '0.3';
+    playSound(sfxGrab);
+
+    // Crear un clon visual que siga al dedo
+    const touch = e.touches[0];
+    touchClone = this.cloneNode(true);
+    touchClone.style.position = 'fixed';
+    touchClone.style.zIndex = '9999';
+    touchClone.style.opacity = '0.9';
+    touchClone.style.pointerEvents = 'none'; // Clave para que el sistema detecte lo que hay debajo
+    touchClone.style.transform = 'translate(-50%, -50%)';
+    touchClone.style.left = touch.clientX + 'px';
+    touchClone.style.top = touch.clientY + 'px';
+    
+    document.body.appendChild(touchClone);
+}
+
+function handleTouchMove(e) {
+    if (!draggedCard || !touchClone) return;
+    e.preventDefault(); // Evita que la pantalla haga scroll al arrastrar
+    
+    // Mover el clon visual junto con el dedo
+    const touch = e.touches[0];
+    touchClone.style.left = touch.clientX + 'px';
+    touchClone.style.top = touch.clientY + 'px';
+}
+
+function handleTouchEnd(e) {
+    if (!draggedCard) return;
+
+    // Eliminar el clon visual
+    if (touchClone) {
+        touchClone.remove();
+        touchClone = null;
+    }
+
+    draggedCard.style.opacity = '1';
+
+    // Obtener las coordenadas donde se levantó el dedo
+    const touch = e.changedTouches[0];
+    const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (dropTarget) {
+        // Verificar si se soltó sobre una ranura o sobre el tablero
+        const slot = dropTarget.closest('.drop-slot');
+        const board = dropTarget.closest('#evidence-board');
+
+        if (slot) {
+            const existingCard = slot.querySelector('.card');
+            if (existingCard && existingCard !== draggedCard) {
+                evidenceBoard.appendChild(existingCard);
+            }
+            slot.appendChild(draggedCard);
+            playSound(sfxDrop);
+        } else if (board) {
+            evidenceBoard.appendChild(draggedCard);
+            playSound(sfxDrop);
+        }
+    }
+
+    draggedCard = null;
+    checkDropZones();
+}
+
 function checkDropZones() {
     let filledSlots = 0;
     dropSlots.forEach(slot => { if (slot.querySelector('.card')) filledSlots++; });
@@ -183,7 +256,7 @@ function checkDropZones() {
 btnVerify.addEventListener('click', () => {
     let allCorrect = true;
     let cardsInSlots = [];
-    let correctNames = []; // Guardar los nombres para la explicación
+    let correctNames = []; 
 
     dropSlots.forEach(slot => {
         const card = slot.querySelector('.card');
@@ -199,7 +272,6 @@ btnVerify.addEventListener('click', () => {
     if (allCorrect) {
         playSound(sfxSuccess);
         
-        // Explicación dinámica del porqué son correctas
         storyText.innerHTML = `<strong>Evidencias Confirmadas:</strong> Has enlazado correctamente a <em>${correctNames.join(", ")}</em>.<br><br><strong>Reporte de la época:</strong> ${currentLevelData.story}`;
         
         resolutionStory.classList.remove('hidden');
